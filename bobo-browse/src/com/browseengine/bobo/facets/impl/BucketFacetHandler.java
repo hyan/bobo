@@ -17,15 +17,14 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
-import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessOrFilter;
 import com.browseengine.bobo.sort.DocComparatorSource;
 
-public class BucketFacetHandler extends FacetHandler<FacetDataCache>{
+public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
   private static Logger logger = Logger.getLogger(BucketFacetHandler.class);
   private final List<String> _predefinedBuckets;
   private final String _dependOnFacetName;
@@ -193,8 +192,6 @@ public class BucketFacetHandler extends FacetHandler<FacetDataCache>{
       @Override
       public FacetCountCollector getFacetCountCollector(BoboIndexReader reader, int docBase)
       {
-        FacetDataCache dataCache = getFacetData(reader);
-        
         FacetSpec elemSpec = new FacetSpec();
         elemSpec.setCustomComparatorFactory(ospec.getCustomComparatorFactory());
         elemSpec.setExpandSelection(ospec.isExpandSelection());
@@ -214,14 +211,14 @@ public class BucketFacetHandler extends FacetHandler<FacetDataCache>{
   }
   
   @Override
-  public FacetDataCache load(BoboIndexReader reader) throws IOException
+  public FacetDataNone load(BoboIndexReader reader) throws IOException
   {
-    _dependOnFacetHandler = reader.getFacetHandler(_dependOnFacetName);
+    _dependOnFacetHandler = this.getDependedFacetHandler(_dependOnFacetName);
     if (_dependOnFacetHandler==null)
     {
       throw new IllegalStateException("bucketFacetHandler need to be supported by other underlying facetHandlers");
     }
-    return (FacetDataCache)_dependOnFacetHandler.load(reader);
+    return FacetDataNone.instance;
   } 
 }
 
